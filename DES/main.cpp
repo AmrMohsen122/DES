@@ -77,7 +77,7 @@ uint8_t	F_permutation[F_PERMUTATION_SIZE] = {
 
 uint64_t permute_1D(const uint8_t permutation_table[], uint64_t variable , uint8_t size);
 
-void split_word(uint64_t word, uint32_t* l_half_word, uint32_t* r_half_word, enum word_size);
+void split_word(uint64_t word, uint32_t& l_half_word, uint32_t& r_half_word, enum word_size);
 
 void generate_keys(uint64_t original_key , uint64_t key_container[]);
 
@@ -85,10 +85,7 @@ int main(void) {
 	/*MSB----LSB*/
 	uint64_t message = 0x7123456789ABCDEF;
 	//uint64_t key = 0x133457799BBCDFF1;
-	uint64_t result = permute_1D(permutation_choice_1, message, PER_CHOICE_1_SIZE);
-	std::cout << std::hex << message <<std::endl;
-	//std::cout << std::hex << result << std::endl;
-	SWAP_32_BITS(message);
+	//uint64_t result = permute_1D(permutation_choice_1, message, PER_CHOICE_1_SIZE);
 	std::cout << std::hex << message <<std::endl;
 
 	return 0;
@@ -110,18 +107,18 @@ uint64_t permute_1D(const uint8_t permutation_table[], uint64_t variable , uint8
 	return result;
 }
 
-void split_word(uint64_t word, uint32_t* l_half_word, uint32_t* r_half_word, enum word_size wordSize) {
+void split_word(uint64_t word, uint32_t& l_half_word, uint32_t& r_half_word, enum word_size wordSize) {
 	/*half_word1 contains the most 32bit of word
 	  half_word2 contains the Least 32bit of word
 	*/
 	switch (wordSize) {
 	case _64_BIT_WORD:
-		*l_half_word = (word >> 32);
-		*r_half_word = word;
+		l_half_word = (word >> 32);
+		r_half_word = word;
 		break;
 	case _56_BIT_WORD:
-		*l_half_word = ((word >> 28) & 0x000000000FFFFFFF);
-		*r_half_word = (word & 0x000000000FFFFFFF);
+		l_half_word = ((word >> 28) & 0x000000000FFFFFFF);
+		r_half_word = (word & 0x000000000FFFFFFF);
 		break;
 	}
 
@@ -130,7 +127,7 @@ void split_word(uint64_t word, uint32_t* l_half_word, uint32_t* r_half_word, enu
 void generate_keys(uint64_t original_key, const uint64_t key_container[]) {
 	uint32_t key_upper_half = 0;
 	uint32_t key_lower_half = 0;
-	split_word(original_key, &key_upper_half, &key_lower_half , _56_BIT_WORD);
+	split_word(original_key, key_upper_half, key_lower_half , _56_BIT_WORD);
 	for (int i = 0; i < 16; i++) {
 		
 	
