@@ -373,12 +373,13 @@ void read_and_write_in_file(void) {
 		realDec = realDecimalFromHex(ch); //convert it
 		dataBuffer <<= 4; //shift the data left by 4 as every hex is 4 bits
 		dataBuffer |= realDec; //oring with realDec to overrides the zeroes with real data and leave the original ones unchanged
-		outputFile << std::hex<<dataBuffer;
+		
 
 
 		if (counter == 16) { //4*16=64 so the 64 bit of 'data' is consumed
 			//TODO : call function to convert it to cipher
 			//std::cout << std::hex << dataBuffer << std::endl;
+			outputFile << std::hex<<dataBuffer;
 			counter = 0;
 
 		}
