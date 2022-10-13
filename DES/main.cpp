@@ -1,5 +1,7 @@
 #include <iostream>
 #include <bitset>
+#include <stdio.h>
+#include <fstream>
 /******************************************************* COMMON MACROS ********************************************************************/
 #define GET_BIT(VAR,BIT_NUMBER) (((VAR) & (1ULL << (BIT_NUMBER))) >> (BIT_NUMBER))
 #define INSERT_BIT(VAR,BIT_VAL,BIT_NUMBER) (VAR = ((VAR & ~(1ULL << BIT_NUMBER)) | ((uint64_t)(BIT_VAL) << BIT_NUMBER)))
@@ -144,6 +146,14 @@ uint8_t	F_permutation[F_PERMUTATION_SIZE] = {
 	 2,  8, 24, 14, 32, 27,  3,  9,
 	19, 13, 30,  6, 22, 11,  4, 25
 };
+/*THIS PATHS ARE HARD CODED, REMEMBER TO CHANGE THE MAIN TO TAKE THE PATHS ARE INPUTS*/
+char folderPath[150] =
+		"E:\\Others\\El koleya el weskha\\Last year\\First term\\sample2.txt";
+char folder2Path[150] =
+		"E:\\Others\\El koleya el weskha\\Last year\\First term\\outputSample.txt";
+
+//NOTE: add second backslash to the path
+
 /****************************************************************************************************************************************/
 
 /******************************************************* FUNCTION PROTOTYPES *************************************************************/
@@ -158,6 +168,8 @@ uint64_t des_forward_round(uint64_t data, uint64_t scheduled_key);
 uint64_t des_inverse_round(uint64_t data, uint64_t scheduled_key);
 uint64_t encrypt(uint64_t plain_text, uint64_t key_container[]);
 uint64_t decrypt(uint64_t cipher, uint64_t key_container[]);
+void read_and_write_in_file(void);
+uint8_t realDecimalFromHex(uint8_t c);
 /****************************************************************************************************************************************/
 
 
@@ -332,5 +344,69 @@ uint64_t decrypt(uint64_t cipher, uint64_t key_container[]) {
 	temp_output = permute_1D(init_permumtation_table, temp_output, PER_INITIAL_SIZE);
 	return temp_output;
 }
+/*
+ * Description: function to read a hex data from file and write the cipher in another file
+ * 1)It reads the first 16 chars from the file
+ * 2)Convert the ascii value to the real decimal of the hex
+ * 2)Store it in variable "data"
+ * 3)Process the data and writes the output in file
+ *
+ * 	input:void
+ * 	output:
+ * */
+void read_and_write_in_file(void) {
+	uint64_t dataBuffer = 0;
+	FILE *ptr;
+	int8_t ch; //Exits the loop when ch=-1 so its type is signed int
+	uint8_t realDec, counter = 0; //realDec to convert the ascii value to the real hex
+	//counter to count how many iterations in the loop are executed
+
+	// Opening file in reading mode
+	ptr = fopen(folderPath, "r");
+	std::ofstream outputFile(folder2Path);
+
+
+	// character by character using loop.
+	do {
+		counter++;
+		ch = fgetc(ptr); //get the character
+		realDec = realDecimalFromHex(ch); //convert it
+		dataBuffer <<= 4; //shift the data left by 4 as every hex is 4 bits
+		dataBuffer |= realDec; //oring with realDec to overrides the zeroes with real data and leave the original ones unchanged
+		outputFile << std::hex<<dataBuffer;
+
+
+		if (counter == 16) { //4*16=64 so the 64 bit of 'data' is consumed
+			//call function to convert it to cipher
+			std::cout << std::hex << dataBuffer << std::endl;
+			counter = 0;
+
+		}
+
+		// Checking if character is not EOF.
+		// If it is EOF stop reading.
+	} while (ch != EOF);
+
+	// Closing the file
+	fclose(ptr);
+	outputFile.close();
+
+}
+
+//Description: the function converts ascii value to the real hex
+//input: char to be converted
+//output: real deciaml value of the char
+//example: if the char is 'A' it will return 10
+uint8_t realDecimalFromHex(uint8_t c) {
+	uint8_t value = c;
+	if (c >= 'A' && c <= 'F') {
+		value = c - 'A' + 10;
+
+	} else if (c >= '0' && c <= '9') {
+		value = c - '0';
+	}
+	return value;
+}
+
 
 /****************************************************************************************************************************************/
