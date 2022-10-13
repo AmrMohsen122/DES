@@ -257,7 +257,10 @@ uint32_t s_box(uint64_t num) {
 	}
 	return last;
 };
-
+/*LSB ----MSB*/
+/*
+	0x3123456700000000
+*/
 /*IF THE NUMBER IS LESS 64 BYTES YOU NEED TO SHIFT IT SO THE ZEROS ARE ON THE RIGHT*/
 uint64_t permute_1D(const uint8_t permutation_table[], uint64_t variable, uint8_t size_table) {
 	uint64_t result = 0;
