@@ -1,8 +1,8 @@
 #include <iostream>
 #include <bitset>
 /******************************************************* COMMON MACROS ********************************************************************/
-#define GET_BIT(VAR,BIT_NUMBER) (((VAR) & ((uint64_t)1 << (BIT_NUMBER))) >> (BIT_NUMBER))
-#define INSERT_BIT(VAR,BIT_VAL,BIT_NUMBER) (VAR = ((VAR & ~((uint64_t)1 << BIT_NUMBER)) | ((uint64_t)(BIT_VAL) << BIT_NUMBER)))
+#define GET_BIT(VAR,BIT_NUMBER) (((VAR) & (1ULL << (BIT_NUMBER))) >> (BIT_NUMBER))
+#define INSERT_BIT(VAR,BIT_VAL,BIT_NUMBER) (VAR = ((VAR & ~(1ULL << BIT_NUMBER)) | ((uint64_t)(BIT_VAL) << BIT_NUMBER)))
 /*
 THIS MACRO IS NOT GENERIC AND ONLY INTENDED FOR THE FOLLOWING USECASE
 LEFT CIRCULAR SHIFT OF 32-BIT VARIABLE THAT IS USED TO CARRY A 28-BIT NUMBER
