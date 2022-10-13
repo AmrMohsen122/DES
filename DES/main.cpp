@@ -377,8 +377,8 @@ void read_and_write_in_file(void) {
 
 
 		if (counter == 16) { //4*16=64 so the 64 bit of 'data' is consumed
-			//call function to convert it to cipher
-			std::cout << std::hex << dataBuffer << std::endl;
+			//TODO : call function to convert it to cipher
+			//std::cout << std::hex << dataBuffer << std::endl;
 			counter = 0;
 
 		}
