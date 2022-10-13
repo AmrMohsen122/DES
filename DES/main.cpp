@@ -150,11 +150,14 @@ uint8_t	F_permutation[F_PERMUTATION_SIZE] = {
 uint64_t permute_1D(const uint8_t permutation_table[], uint64_t variable, uint8_t size);
 void split_word(uint64_t word, uint32_t& l_half_word, uint32_t& r_half_word, enum word_size);
 void generate_keys(uint64_t original_key, uint64_t key_container[]);
-void blocks(uint64_t num, uint8_t arr[]);
+uint32_t s_box(uint64_t num);
 uint8_t extract_col(uint8_t num_6);
 uint8_t extract_row(uint8_t x);
-uint32_t s_box(uint64_t num);
 uint32_t round_function(uint32_t right_half_word, uint64_t scheduled_key);
+uint64_t des_forward_round(uint64_t data, uint64_t scheduled_key);
+uint64_t des_inverse_round(uint64_t data, uint64_t scheduled_key);
+uint64_t encrypt(uint64_t plain_text, uint64_t key_container[]);
+uint64_t decrypt(uint64_t cipher, uint64_t key_container[]);
 /****************************************************************************************************************************************/
 
 
@@ -174,21 +177,20 @@ uint32_t round_function(uint32_t right_half_word, uint64_t scheduled_key);
 	PERM_OUTPUT = 0x234AA9BB
 */
 
-int main(void) {
+int main(int argc , char* argv[]) {
 
 	// /*LSB----MSB*/
 	uint64_t key_container[16] = { 0 };
 	uint64_t message = 0x0123456789ABCDEF;
-	uint64_t key = 0x133457799BBCDFF1;
+	uint64_t cipherr = 0x56cc09e7cfdc4cef;
+	uint64_t key = 0x0123456789ABCDEF;
+	//uint64_t key = 0x133457799BBCDFF1;
 	generate_keys(key, key_container);
-	for (uint64_t k : key_container) {
-		std::cout << std::hex << (k) << std::endl;
-	}
-	std::cout << std::hex << round_function(0xF0AAF0AA, key_container[0]);
-	//message = permute_1D(init_permumtation_table, message, PER_INITIAL_SIZE);
-	//std::cout << std::bitset<64>(C1D1) << std::endl;
-	//std::cout << std::hex <<(exp_in) << std::endl;
-	//std::cout << message - (0xCC00CCFFF0AAF0AA);
+	//for (uint64_t k : key_container) {
+	//	std::cout << std::hex << (k) << std::endl;
+	//}
+	uint64_t cipher = decrypt(cipherr, key_container);
+	std::cout <<"cipher " << std::hex << cipher << std::endl;
 	return 0;
 }
 
@@ -198,37 +200,10 @@ int main(void) {
 
 /******************************************************* FUNCTION DEFINITIONS *************************************************************/
 
-uint8_t extract_6(uint64_t num) {
-
-	uint64_t mask = 0x3F;
-
-	return (uint8_t)num & mask;
-
-};
-
-void blocks(uint64_t num, uint8_t arr[]) {
-
-	uint64_t temp = 0x0;
-
-	for (int i = 0; i < 8; i++) {
-
-
-		temp = (num >> (i * 6));
-
-		arr[7 - i] = extract_6(temp);
-
-
-	}
-
-
-
-};
 
 uint8_t extract_col(uint8_t num_6) {
-
 	uint8_t mask = 0x21;
 	return (num_6 & ~mask) >> 1;
-
 };
 
 uint8_t extract_row(uint8_t x) {
@@ -237,26 +212,21 @@ uint8_t extract_row(uint8_t x) {
 };
 
 uint32_t s_box(uint64_t num) {
-	uint32_t last = 0x0;
-	uint8_t arr[8] = {};
-	blocks(num, arr);
-	uint8_t column = 0;
-	uint8_t row = 0;
-	// for (auto k : arr)
-	//  {
-	//  	std::cout << std::bitset<6>(k)<<std::endl;
-	// }
+	uint64_t temp = num;
+	uint64_t result = 0;
+	uint8_t var_6 = 0;
+	uint32_t res_temp = 0;
 	for (int i = 0; i < 8; i++) {
-		last <<= 4;
-		column = extract_col(arr[i]);
-		row = extract_row(arr[i]);
-		//std::cout << "4 bit number is " << s_table[i][row][column] << std::endl;
-		//// std::cout << std::hex << last << std::endl;
-		//std::cout << "--------------------------" << std::endl;
-		last |= s_table[i][row][column];
+		var_6 = (uint8_t)temp & 0x3F;
+		temp >>= 6;
+		res_temp = s_table[7 - i][extract_row(var_6)][extract_col(var_6)];
+		res_temp <<= (4 * i);
+		result |= res_temp;
 	}
-	return last;
+	return result;
 };
+
+
 /*LSB ----MSB*/
 /*
 	0x3123456700000000
@@ -317,8 +287,50 @@ uint32_t round_function(uint32_t right_half_word, uint64_t scheduled_key) {
 	/* after s_box 5C82B597*/
 	expanded_half_word = permute_1D(F_permutation, expanded_half_word, F_PERMUTATION_SIZE);
 	/* after perm 234AA9BB*/
-	std::cout << std::hex << expanded_half_word << std::endl;
 	return expanded_half_word >> 32;
+}
+
+uint64_t des_forward_round(uint64_t data, uint64_t scheduled_key) {
+	uint32_t data_left_half = 0;
+	uint32_t data_right_half = 0;
+	uint32_t round_fun_output = 0;
+	split_word(data, data_left_half, data_right_half , _64_BIT_WORD);
+	round_fun_output = round_function(data_right_half, scheduled_key);
+	return (static_cast<uint64_t>(data_right_half) << 32) | (round_fun_output ^ data_left_half);
+}
+
+uint64_t des_inverse_round(uint64_t data, uint64_t scheduled_key) {
+	uint32_t data_left_half = 0;
+	uint32_t data_right_half = 0;
+	uint32_t round_fun_output = 0;
+	split_word(data, data_left_half, data_right_half, _64_BIT_WORD);
+	round_fun_output = round_function(data_left_half , scheduled_key);
+	return (((static_cast<uint64_t>(round_fun_output) ^ data_right_half) << 32) | data_left_half);
+}
+
+uint64_t encrypt(uint64_t plain_text , uint64_t key_container[]) {
+	plain_text = permute_1D(init_permumtation_table, plain_text, PER_INITIAL_SIZE);
+	uint64_t temp_output = plain_text;
+	for (uint8_t i = 0; i < 16; i++) {
+		temp_output = des_forward_round(temp_output, key_container[i]);
+		//std::cout << "round#" << static_cast<uint32_t>(i) << " " << std::hex << temp_output << std::endl;
+	}
+	SWAP_32_BITS(temp_output);
+	temp_output = permute_1D(inverse_init_permumtation_table, temp_output, PER_INVERSE_SIZE);
+	return temp_output;
+}
+
+uint64_t decrypt(uint64_t cipher, uint64_t key_container[]) {
+	cipher = permute_1D(inverse_init_permumtation_table, cipher, PER_INVERSE_SIZE);
+	std::cout << std::hex << cipher << std::endl;
+	SWAP_32_BITS(cipher);
+	uint64_t temp_output = cipher;
+	for(char i = 15; i >= 0; --i) {
+		temp_output = des_inverse_round(temp_output, key_container[i]);
+		std::cout << "round#" << static_cast<uint32_t>(i) << " " << std::hex << temp_output << std::endl;
+	}
+	temp_output = permute_1D(init_permumtation_table, temp_output, PER_INITIAL_SIZE);
+	return temp_output;
 }
 
 /****************************************************************************************************************************************/
