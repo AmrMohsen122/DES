@@ -1,5 +1,4 @@
 #include <iostream>
-#include <bitset>
 #include <stdio.h>
 #include <fstream>
 /******************************************************* COMMON MACROS ********************************************************************/
@@ -194,15 +193,14 @@ int main(int argc , char* argv[]) {
 	// /*LSB----MSB*/
 	uint64_t key_container[16] = { 0 };
 	uint64_t message = 0x0123456789ABCDEF;
-	uint64_t cipherr = 0x56cc09e7cfdc4cef;
 	uint64_t key = 0x0123456789ABCDEF;
-	//uint64_t key = 0x133457799BBCDFF1;
 	generate_keys(key, key_container);
-	//for (uint64_t k : key_container) {
-	//	std::cout << std::hex << (k) << std::endl;
-	//}
-	uint64_t cipher = decrypt(cipherr, key_container);
-	std::cout <<"cipher " << std::hex << cipher << std::endl;
+	std::cout <<"original message\t" << std::hex << message << std::endl;
+	uint64_t cipher = encrypt(message , key_container);
+	std::cout <<"encrypted message\t" << std::hex << cipher << std::endl;
+	/*try encrypting*/
+	cipher = decrypt(cipher, key_container);
+	std::cout <<"decrypted message\t" << std::hex << cipher << std::endl;
 	return 0;
 }
 
@@ -333,17 +331,16 @@ uint64_t encrypt(uint64_t plain_text , uint64_t key_container[]) {
 }
 
 uint64_t decrypt(uint64_t cipher, uint64_t key_container[]) {
-	cipher = permute_1D(inverse_init_permumtation_table, cipher, PER_INVERSE_SIZE);
-	std::cout << std::hex << cipher << std::endl;
+	cipher = permute_1D(init_permumtation_table, cipher, PER_INITIAL_SIZE);
 	SWAP_32_BITS(cipher);
 	uint64_t temp_output = cipher;
 	for(char i = 15; i >= 0; --i) {
 		temp_output = des_inverse_round(temp_output, key_container[i]);
-		std::cout << "round#" << static_cast<uint32_t>(i) << " " << std::hex << temp_output << std::endl;
 	}
-	temp_output = permute_1D(init_permumtation_table, temp_output, PER_INITIAL_SIZE);
+	temp_output = permute_1D(inverse_init_permumtation_table, temp_output, PER_INVERSE_SIZE);
 	return temp_output;
 }
+
 /*
  * Description: function to read a hex data from file and write the cipher in another file
  * 1)It reads the first 16 chars from the file
