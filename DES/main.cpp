@@ -139,10 +139,8 @@ uint8_t realDecimalFromHex(uint8_t c);
  */
 
 int main(int argc, char *argv[]) {
-	keyReader(argv[1]); //keycontainrer is made
-	for (int i = 0; i < argc; i++) {
-		std::cout << "argv[" << i << "] is: " << argv[i] << std::endl;
-	}
+	keyReader(argv[1]); //keycontainer is made
+	
 
 	if (!strcmp(argv[2], "encrypt")) {
 		std::cout << "encryption running ..." << std::endl;
@@ -151,9 +149,8 @@ int main(int argc, char *argv[]) {
 		std::cout << "decryption running ..." << std::endl;
 		decryption_and_write_in_file(argv[3], argv[4]);
 	} else {
-		for (int i = 0; i < argc; i++) {
-			std::cout << "argv[" << i << "] is: " << argv[i] << std::endl;
-		}
+			std::cout << "Operation error\nPlease enter \"encrypt\" or \"decrypt\" "<< std::endl;
+		
 	}
 	return 0;
 }
